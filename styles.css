@@ -1,6 +1,7 @@
 /* Espacement des grandes parties. */
 .markdown-source-view.mod-cm6 {
   --replier-tout-couleur-trait: var(--background-modifier-border);
+  --replier-tout-espacement-partie: 1.25em;
 }
 
 .theme-dark .markdown-source-view.mod-cm6 {
@@ -8,7 +9,13 @@
 }
 
 .markdown-source-view.mod-cm6 .cm-line.HyperMD-header-2 {
-  margin-top: 1.25em;
+  margin-top: var(--replier-tout-espacement-partie);
+  margin-bottom: var(--replier-tout-espacement-partie);
+}
+
+/* Masque uniquement les points indiquant le contenu replié d'un titre. */
+.markdown-source-view.mod-cm6 .cm-line[class*="HyperMD-header"] .cm-foldPlaceholder {
+  display: none;
 }
 
 /* Trait conditionnel : première partie ou partie précédente dépliée. */
