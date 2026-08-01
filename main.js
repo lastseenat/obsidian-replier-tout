@@ -34,19 +34,25 @@ function buildSectionSeparators(view) {
   levelTwoHeadings.forEach((heading, index) => {
     const nextHeading = levelTwoHeadings[index + 1];
     const sectionEnd = nextHeading ? nextHeading.from : view.state.doc.length + 1;
-    const hasLowerHeading = lowerHeadings.some(
+    const firstLowerHeading = lowerHeadings.find(
       (line) => line.from > heading.to && line.from < sectionEnd,
     );
+    const hasLowerHeading = Boolean(firstLowerHeading);
+    const sectionIsFolded = firstLowerHeading
+      ? positionIsFolded(view.state, firstLowerHeading.from)
+      : false;
+    const isLastNumberedHeading = /^##\s+\d/.test(heading.text)
+      && (!nextHeading || !/^##\s+\d/.test(nextHeading.text));
     let showSeparator = index === 0;
 
     if (index > 0) {
       const previousHeading = levelTwoHeadings[index - 1];
-      const firstLowerHeading = lowerHeadings.find(
+      const previousFirstLowerHeading = lowerHeadings.find(
         (line) => line.from > previousHeading.to && line.from < heading.from,
       );
 
-      if (firstLowerHeading) {
-        showSeparator = !positionIsFolded(view.state, firstLowerHeading.from);
+      if (previousFirstLowerHeading) {
+        showSeparator = !positionIsFolded(view.state, previousFirstLowerHeading.from);
       } else {
         const sectionPosition = Math.min(previousHeading.to + 1, heading.from - 1);
         showSeparator = !positionIsFolded(view.state, sectionPosition);
@@ -57,7 +63,7 @@ function buildSectionSeparators(view) {
     if (showSeparator) {
       classes.push("replier-tout-separateur");
     }
-    if (!hasLowerHeading) {
+    if (!hasLowerHeading || (isLastNumberedHeading && sectionIsFolded)) {
       classes.push("replier-tout-sans-sous-titre");
     }
 

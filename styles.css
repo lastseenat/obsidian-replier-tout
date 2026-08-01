@@ -13,6 +13,23 @@
   margin-bottom: var(--replier-tout-espacement-partie);
 }
 
+/* Retrait progressif des sous-titres, sans déplacer leur contenu. */
+.markdown-source-view.mod-cm6 .cm-line.HyperMD-header-3 {
+  padding-left: 1.25em;
+}
+
+.markdown-source-view.mod-cm6 .cm-line.HyperMD-header-4 {
+  padding-left: 2.5em;
+}
+
+.markdown-source-view.mod-cm6 .cm-line.HyperMD-header-5 {
+  padding-left: 3.75em;
+}
+
+.markdown-source-view.mod-cm6 .cm-line.HyperMD-header-6 {
+  padding-left: 5em;
+}
+
 /* Masque uniquement les points indiquant le contenu replié d'un titre. */
 .markdown-source-view.mod-cm6 .cm-line[class*="HyperMD-header"] .cm-foldPlaceholder {
   display: none;
