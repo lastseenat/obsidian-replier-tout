@@ -2,6 +2,7 @@
 .markdown-source-view.mod-cm6 {
   --replier-tout-couleur-trait: var(--background-modifier-border);
   --replier-tout-espacement-partie: 1.25em;
+  --replier-tout-espace-apres-trait: 0.75em;
 }
 
 .theme-dark .markdown-source-view.mod-cm6 {
@@ -32,8 +33,14 @@
 
 /* Trait sous un titre de niveau inférieur uniquement lorsqu'il est déplié. */
 .markdown-source-view.mod-cm6 .cm-line.replier-tout-titre-deplie {
-  border-bottom: 1px solid var(--replier-tout-couleur-trait);
-  padding-bottom: 0.25em;
+  background-image: linear-gradient(
+    var(--replier-tout-couleur-trait),
+    var(--replier-tout-couleur-trait)
+  );
+  background-position: left bottom var(--replier-tout-espace-apres-trait);
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  padding-bottom: calc(0.25em + var(--replier-tout-espace-apres-trait));
 }
 
 /* Masque uniquement les points indiquant le contenu replié d'un titre. */
