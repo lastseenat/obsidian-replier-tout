@@ -88,20 +88,35 @@ function buildSectionSeparators(view) {
 
   lowerHeadings.forEach((heading) => {
     if (!headingIsFolded(view.state, heading)) {
+      const level = headingLevel(heading);
+      const nextBoundaryHeading = allHeadings.find(
+        (candidate) => candidate.from > heading.from && headingLevel(candidate) <= level,
+      );
+      const sectionEnd = nextBoundaryHeading
+        ? nextBoundaryHeading.from
+        : view.state.doc.length + 1;
+      const firstChildHeading = lowerHeadings.find(
+        (candidate) => candidate.from > heading.from
+          && candidate.from < sectionEnd
+          && headingLevel(candidate) === level + 1,
+      );
+
       decorations.push(
         Decoration.line({ attributes: { class: "replier-tout-titre-deplie" } })
           .range(heading.from),
       );
 
-      const level = headingLevel(heading);
-      const nextBoundaryHeading = allHeadings.find(
-        (candidate) => candidate.from > heading.from && headingLevel(candidate) <= level,
-      );
+      if (firstChildHeading) {
+        const lineBeforeChild = lastVisibleContentLineBefore(view.state, firstChildHeading.from);
+        if (lineBeforeChild.from !== heading.from) {
+          decorations.push(
+            Decoration.line({ attributes: { class: "replier-tout-premier-sous-titre" } })
+              .range(firstChildHeading.from),
+          );
+        }
+      }
 
       if (!nextBoundaryHeading || headingLevel(nextBoundaryHeading) > 2) {
-        const sectionEnd = nextBoundaryHeading
-          ? nextBoundaryHeading.from
-          : view.state.doc.length + 1;
         const lastContentLine = lastVisibleContentLineBefore(view.state, sectionEnd);
 
         if (lastContentLine.from !== heading.from) {

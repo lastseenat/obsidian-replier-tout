@@ -5,7 +5,7 @@
   --replier-tout-espace-apres-trait: 0.75em;
   --replier-tout-espace-avant-trait: 0.75em;
   --replier-tout-espace-tableau: 0.25em;
-  --replier-tout-espace-tableau-edition: -0.5em;
+  --replier-tout-espace-tableau-edition: -0.75em;
 }
 
 .theme-dark .markdown-source-view.mod-cm6 {
@@ -50,6 +50,12 @@
 .markdown-source-view.mod-cm6 .cm-line.replier-tout-fin-titre-deplie {
   border-bottom: 1px solid var(--replier-tout-couleur-trait);
   padding-bottom: var(--replier-tout-espace-avant-trait);
+}
+
+/* Trait entre le texte introductif et le premier sous-titre. */
+.markdown-source-view.mod-cm6 .cm-line.replier-tout-premier-sous-titre {
+  border-top: 1px solid var(--replier-tout-couleur-trait);
+  padding-top: 0.35em;
 }
 
 /* Tableaux centrés avec le même espace avant et après. */
