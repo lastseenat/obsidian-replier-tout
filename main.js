@@ -12,11 +12,16 @@ function readingHeadingLevel(element) {
 }
 
 function decorateReadingSections(element) {
-  const sections = [];
+  const sections = new Set();
   if (element.matches?.(".markdown-preview-section")) {
-    sections.push(element);
+    sections.add(element);
   }
-  sections.push(...(element.querySelectorAll?.(".markdown-preview-section") ?? []));
+  const closestSection = element.closest?.(".markdown-preview-section");
+  if (closestSection) {
+    sections.add(closestSection);
+  }
+  (element.querySelectorAll?.(".markdown-preview-section") ?? [])
+    .forEach((section) => sections.add(section));
 
   sections.forEach((section) => {
     const children = [...section.children];
@@ -284,10 +289,17 @@ module.exports = class ReplierToutPlugin extends Plugin {
     this.applyTableAlignment();
     this.viewsWithActions = new WeakSet();
     this.registerEditorExtension(sectionSeparatorExtension);
-    this.registerMarkdownPostProcessor((element) => decorateReadingSections(element));
+    this.registerMarkdownPostProcessor((element) => {
+      decorateReadingSections(element);
+      window.setTimeout(() => this.decorateReadingViews(), 0);
+    });
     this.addNoteActions();
     this.addSettingTab(new ReplierToutSettingTab(this.app, this));
-    this.registerEvent(this.app.workspace.on("layout-change", () => this.addNoteActions()));
+    this.registerEvent(this.app.workspace.on("layout-change", () => {
+      this.addNoteActions();
+      this.decorateReadingViews();
+    }));
+    window.setTimeout(() => this.decorateReadingViews(), 0);
   }
 
   onunload() {
@@ -306,6 +318,11 @@ module.exports = class ReplierToutPlugin extends Plugin {
 
   applyTableAlignment() {
     document.body.toggleClass("replier-tout-tableaux-non-centres", !this.settings.centerTables);
+  }
+
+  decorateReadingViews() {
+    document.querySelectorAll(".markdown-reading-view .markdown-preview-section")
+      .forEach((section) => decorateReadingSections(section));
   }
 
   addNoteActions() {
