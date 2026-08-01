@@ -4,7 +4,8 @@
   --replier-tout-espacement-partie: 1.25em;
   --replier-tout-espace-apres-trait: 0.75em;
   --replier-tout-espace-avant-trait: 0.75em;
-  --replier-tout-espace-tableau: 1em;
+  --replier-tout-espace-tableau: 0.25em;
+  --replier-tout-espace-tableau-edition: -0.5em;
 }
 
 .theme-dark .markdown-source-view.mod-cm6 {
@@ -52,13 +53,41 @@
 }
 
 /* Tableaux centrés avec le même espace avant et après. */
-.replier-tout-tableaux-centres .markdown-reading-view table,
-.replier-tout-tableaux-centres .markdown-preview-view table,
-.replier-tout-tableaux-centres .markdown-source-view.mod-cm6 .cm-table-widget {
+body:not(.replier-tout-tableaux-non-centres) .markdown-reading-view table,
+body:not(.replier-tout-tableaux-non-centres) .markdown-preview-view table {
   margin-top: var(--replier-tout-espace-tableau) !important;
   margin-right: auto !important;
   margin-bottom: var(--replier-tout-espace-tableau) !important;
   margin-left: auto !important;
+}
+
+body:not(.replier-tout-tableaux-non-centres)
+  .markdown-source-view.mod-cm6 .cm-table-widget {
+  display: inline-block !important;
+  width: fit-content !important;
+  max-width: 100%;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: var(--replier-tout-espace-tableau-edition) !important;
+  margin-right: 0 !important;
+  margin-bottom: var(--replier-tout-espace-tableau-edition) !important;
+  margin-left: 0 !important;
+}
+
+body:not(.replier-tout-tableaux-non-centres)
+  .markdown-source-view.mod-cm6 .cm-line.replier-tout-tableau-centre {
+  text-align: center;
+}
+
+body:not(.replier-tout-tableaux-non-centres) .markdown-source-view.mod-cm6
+  .cm-line.replier-tout-tableau-centre .cm-table-widget {
+  text-align: left;
+}
+
+body:not(.replier-tout-tableaux-non-centres)
+  .markdown-source-view.mod-cm6 .cm-table-widget table {
+  margin: 0 !important;
 }
 
 /* Masque uniquement les points indiquant le contenu replié d'un titre. */

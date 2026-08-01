@@ -28,10 +28,13 @@ function headingLevel(heading) {
   return /^(#{2,6})\s/.exec(heading.text)[1].length;
 }
 
-function lastContentLineBefore(state, position) {
+function lastVisibleContentLineBefore(state, position) {
   let line = state.doc.lineAt(Math.max(0, Math.min(position - 1, state.doc.length)));
 
-  while (line.number > 1 && line.text.trim() === "") {
+  while (
+    line.number > 1
+    && (line.text.trim() === "" || positionIsFolded(state, line.from))
+  ) {
     line = state.doc.line(line.number - 1);
   }
   return line;
@@ -40,9 +43,27 @@ function lastContentLineBefore(state, position) {
 function buildSectionSeparators(view) {
   const levelTwoHeadings = [];
   const lowerHeadings = [];
+  const tableLines = [];
 
   for (let lineNumber = 1; lineNumber <= view.state.doc.lines; lineNumber += 1) {
     const line = view.state.doc.line(lineNumber);
+    if (lineNumber < view.state.doc.lines && /^\s*\|/.test(line.text)) {
+      const nextLine = view.state.doc.line(lineNumber + 1);
+      if (/^\s*\|(?:\s*:?-{3,}:?\s*\|)+\s*$/.test(nextLine.text)) {
+        for (
+          let tableLineNumber = lineNumber;
+          tableLineNumber <= view.state.doc.lines;
+          tableLineNumber += 1
+        ) {
+          const tableLine = view.state.doc.line(tableLineNumber);
+          if (!/^\s*\|/.test(tableLine.text)) {
+            break;
+          }
+          tableLines.push(tableLine);
+        }
+      }
+    }
+
     const match = /^(#{2,6})\s/.exec(line.text);
     if (!match) {
       continue;
@@ -58,6 +79,13 @@ function buildSectionSeparators(view) {
   const allHeadings = [...levelTwoHeadings, ...lowerHeadings]
     .sort((first, second) => first.from - second.from);
   const decorations = [];
+  tableLines.forEach((line) => {
+    decorations.push(
+      Decoration.line({ attributes: { class: "replier-tout-tableau-centre" } })
+        .range(line.from),
+    );
+  });
+
   lowerHeadings.forEach((heading) => {
     if (!headingIsFolded(view.state, heading)) {
       decorations.push(
@@ -74,7 +102,7 @@ function buildSectionSeparators(view) {
         const sectionEnd = nextBoundaryHeading
           ? nextBoundaryHeading.from
           : view.state.doc.length + 1;
-        const lastContentLine = lastContentLineBefore(view.state, sectionEnd);
+        const lastContentLine = lastVisibleContentLineBefore(view.state, sectionEnd);
 
         if (lastContentLine.from !== heading.from) {
           decorations.push(
@@ -135,7 +163,7 @@ function buildSectionSeparators(view) {
     }
 
     if (nextHeading && lastLowerHeading && !sectionIsFolded) {
-      const lastContentLine = lastContentLineBefore(view.state, nextHeading.from);
+      const lastContentLine = lastVisibleContentLineBefore(view.state, nextHeading.from);
       decorations.push(
         Decoration.line({ attributes: { class: "replier-tout-fin-partie-deplie" } })
           .range(lastContentLine.from),
@@ -164,6 +192,7 @@ const sectionSeparatorExtension = ViewPlugin.fromClass(
 module.exports = class ReplierToutPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
+    document.body.removeClass("replier-tout-tableaux-centres");
     this.applyTableAlignment();
     this.viewsWithActions = new WeakSet();
     this.registerEditorExtension(sectionSeparatorExtension);
@@ -174,6 +203,7 @@ module.exports = class ReplierToutPlugin extends Plugin {
 
   onunload() {
     document.body.removeClass("replier-tout-tableaux-centres");
+    document.body.removeClass("replier-tout-tableaux-non-centres");
   }
 
   async loadSettings() {
@@ -186,7 +216,7 @@ module.exports = class ReplierToutPlugin extends Plugin {
   }
 
   applyTableAlignment() {
-    document.body.toggleClass("replier-tout-tableaux-centres", this.settings.centerTables);
+    document.body.toggleClass("replier-tout-tableaux-non-centres", !this.settings.centerTables);
   }
 
   addNoteActions() {
