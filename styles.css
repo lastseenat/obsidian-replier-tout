@@ -1,5 +1,6 @@
 /* Espacement des grandes parties. */
-.markdown-source-view.mod-cm6 {
+.markdown-source-view.mod-cm6,
+.markdown-reading-view {
   --replier-tout-couleur-trait: var(--background-modifier-border);
   --replier-tout-espacement-partie: 1.25em;
   --replier-tout-espace-apres-trait: 0.75em;
@@ -8,7 +9,8 @@
   --replier-tout-espace-tableau-edition: -0.75em;
 }
 
-.theme-dark .markdown-source-view.mod-cm6 {
+.theme-dark .markdown-source-view.mod-cm6,
+.theme-dark .markdown-reading-view {
   --replier-tout-couleur-trait: var(--text-faint);
 }
 
@@ -128,4 +130,57 @@ body:not(.replier-tout-tableaux-non-centres)
 /* Le premier titre reste proche du titre de la note. */
 .markdown-source-view.mod-cm6 .cm-content > .cm-line.HyperMD-header-2:first-child {
   margin-top: 0;
+}
+
+/* Même hiérarchie et mêmes séparateurs en mode lecture. */
+.markdown-reading-view .replier-tout-premiere-partie-lecture > h2 {
+  border-top: 1px solid var(--replier-tout-couleur-trait);
+  padding-top: 0.35em;
+}
+
+.markdown-reading-view .replier-tout-titre-lecture:not(.is-collapsed)
+  > :is(h2, h3, h4, h5, h6) {
+  border-bottom: 1px solid var(--replier-tout-couleur-trait);
+  padding-bottom: 0.25em;
+  margin-bottom: var(--replier-tout-espace-apres-trait);
+}
+
+.markdown-reading-view .replier-tout-sources-lecture > h2 {
+  border-bottom: 0;
+}
+
+.markdown-reading-view .replier-tout-derniere-partie-lecture.is-collapsed > h2 {
+  border-bottom: 1px solid var(--replier-tout-couleur-trait);
+  padding-bottom: 0.35em;
+}
+
+.markdown-reading-view .replier-tout-fin-section-lecture {
+  border-bottom: 1px solid var(--replier-tout-couleur-trait);
+  padding-bottom: var(--replier-tout-espace-avant-trait);
+}
+
+.markdown-reading-view .replier-tout-fin-section-repliee-lecture.is-collapsed {
+  border-bottom: 1px solid var(--replier-tout-couleur-trait);
+  padding-bottom: var(--replier-tout-espace-avant-trait);
+}
+
+.markdown-reading-view .replier-tout-premier-sous-titre-lecture {
+  border-top: 1px solid var(--replier-tout-couleur-trait);
+  padding-top: 0.35em;
+}
+
+.markdown-reading-view .el-h3 > h3 {
+  margin-left: 1.25em;
+}
+
+.markdown-reading-view .el-h4 > h4 {
+  margin-left: 2.5em;
+}
+
+.markdown-reading-view .el-h5 > h5 {
+  margin-left: 3.75em;
+}
+
+.markdown-reading-view .el-h6 > h6 {
+  margin-left: 5em;
 }

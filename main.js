@@ -6,6 +6,79 @@ const DEFAULT_SETTINGS = {
   centerTables: true,
 };
 
+function readingHeadingLevel(element) {
+  const match = /(?:^|\s)el-h([2-6])(?:\s|$)/.exec(element.className);
+  return match ? Number(match[1]) : null;
+}
+
+function decorateReadingSections(element) {
+  const sections = [];
+  if (element.matches?.(".markdown-preview-section")) {
+    sections.push(element);
+  }
+  sections.push(...(element.querySelectorAll?.(".markdown-preview-section") ?? []));
+
+  sections.forEach((section) => {
+    const children = [...section.children];
+    const headings = children.filter((child) => readingHeadingLevel(child) !== null);
+    const levelTwoHeadings = headings.filter((heading) => readingHeadingLevel(heading) === 2);
+
+    headings.forEach((heading) => {
+      const level = readingHeadingLevel(heading);
+      const headingIndex = children.indexOf(heading);
+      const nextBoundary = headings.find(
+        (candidate) => children.indexOf(candidate) > headingIndex
+          && readingHeadingLevel(candidate) <= level,
+      );
+      const boundaryIndex = nextBoundary ? children.indexOf(nextBoundary) : children.length;
+      const sectionElements = children.slice(headingIndex + 1, boundaryIndex);
+      const firstChildHeading = sectionElements.find(
+        (candidate) => readingHeadingLevel(candidate) === level + 1,
+      );
+      const descendantHeadings = sectionElements.filter(
+        (candidate) => readingHeadingLevel(candidate) > level,
+      );
+      const headingText = heading.querySelector(`h${level}`)?.textContent?.trim() ?? "";
+      const isSourcesHeading = level === 2 && /(?:^|\s)Sources\s*$/i.test(headingText);
+
+      heading.classList.add("replier-tout-titre-lecture");
+      if (isSourcesHeading) {
+        heading.classList.add("replier-tout-sources-lecture");
+      }
+
+      if (firstChildHeading) {
+        const childIndex = sectionElements.indexOf(firstChildHeading);
+        const hasIntroductoryContent = sectionElements
+          .slice(0, childIndex)
+          .some((candidate) => readingHeadingLevel(candidate) === null);
+        if (hasIntroductoryContent) {
+          firstChildHeading.classList.add("replier-tout-premier-sous-titre-lecture");
+        }
+      }
+
+      const lastSectionElement = sectionElements[sectionElements.length - 1];
+      if (lastSectionElement && !isSourcesHeading) {
+        lastSectionElement.classList.add("replier-tout-fin-section-lecture");
+      }
+      const lastDescendantHeading = descendantHeadings[descendantHeadings.length - 1];
+      if (lastDescendantHeading && !isSourcesHeading) {
+        lastDescendantHeading.classList.add("replier-tout-fin-section-repliee-lecture");
+      }
+    });
+
+    if (levelTwoHeadings[0]) {
+      levelTwoHeadings[0].classList.add("replier-tout-premiere-partie-lecture");
+    }
+    const numberedHeadings = levelTwoHeadings.filter((heading) => /^\d/.test(
+      heading.querySelector("h2")?.textContent?.trim() ?? "",
+    ));
+    if (numberedHeadings.length > 0) {
+      numberedHeadings[numberedHeadings.length - 1]
+        .classList.add("replier-tout-derniere-partie-lecture");
+    }
+  });
+}
+
 function positionIsFolded(state, position) {
   let folded = false;
   foldedRanges(state).between(position, Math.min(position + 1, state.doc.length), (from, to) => {
@@ -211,6 +284,7 @@ module.exports = class ReplierToutPlugin extends Plugin {
     this.applyTableAlignment();
     this.viewsWithActions = new WeakSet();
     this.registerEditorExtension(sectionSeparatorExtension);
+    this.registerMarkdownPostProcessor((element) => decorateReadingSections(element));
     this.addNoteActions();
     this.addSettingTab(new ReplierToutSettingTab(this.app, this));
     this.registerEvent(this.app.workspace.on("layout-change", () => this.addNoteActions()));
