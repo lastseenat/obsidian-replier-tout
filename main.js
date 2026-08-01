@@ -21,14 +21,7 @@ function headingIsFolded(state, heading) {
   if (!range) {
     return false;
   }
-
-  let folded = false;
-  foldedRanges(state).between(range.from, range.to, (from, to) => {
-    if (from <= range.from && to >= range.to) {
-      folded = true;
-    }
-  });
-  return folded;
+  return positionIsFolded(state, range.from);
 }
 
 function headingLevel(heading) {
@@ -142,9 +135,10 @@ function buildSectionSeparators(view) {
     }
 
     if (nextHeading && lastLowerHeading && !sectionIsFolded) {
+      const lastContentLine = lastContentLineBefore(view.state, nextHeading.from);
       decorations.push(
-        Decoration.line({ attributes: { class: "replier-tout-dernier-sous-titre" } })
-          .range(lastLowerHeading.from),
+        Decoration.line({ attributes: { class: "replier-tout-fin-partie-deplie" } })
+          .range(lastContentLine.from),
       );
     }
   });
