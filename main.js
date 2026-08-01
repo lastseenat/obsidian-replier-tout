@@ -32,6 +32,11 @@ function buildSectionSeparators(view) {
 
   const decorations = [];
   levelTwoHeadings.forEach((heading, index) => {
+    const nextHeading = levelTwoHeadings[index + 1];
+    const sectionEnd = nextHeading ? nextHeading.from : view.state.doc.length + 1;
+    const hasLowerHeading = lowerHeadings.some(
+      (line) => line.from > heading.to && line.from < sectionEnd,
+    );
     let showSeparator = index === 0;
 
     if (index > 0) {
@@ -48,9 +53,17 @@ function buildSectionSeparators(view) {
       }
     }
 
+    const classes = [];
     if (showSeparator) {
+      classes.push("replier-tout-separateur");
+    }
+    if (!hasLowerHeading) {
+      classes.push("replier-tout-sans-sous-titre");
+    }
+
+    if (classes.length > 0) {
       decorations.push(
-        Decoration.line({ attributes: { class: "replier-tout-separateur" } }).range(heading.from),
+        Decoration.line({ attributes: { class: classes.join(" ") } }).range(heading.from),
       );
     }
   });

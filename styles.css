@@ -1,12 +1,26 @@
 /* Espacement des grandes parties. */
+.markdown-source-view.mod-cm6 {
+  --replier-tout-couleur-trait: var(--background-modifier-border);
+}
+
+.theme-dark .markdown-source-view.mod-cm6 {
+  --replier-tout-couleur-trait: var(--text-faint);
+}
+
 .markdown-source-view.mod-cm6 .cm-line.HyperMD-header-2 {
   margin-top: 1.25em;
 }
 
 /* Trait conditionnel : première partie ou partie précédente dépliée. */
 .markdown-source-view.mod-cm6 .cm-line.HyperMD-header-2.replier-tout-separateur {
-  border-top: 1px solid var(--background-modifier-border);
+  border-top: 1px solid var(--replier-tout-couleur-trait);
   padding-top: 0.35em;
+}
+
+/* Trait de fermeture pour une grande partie sans sous-titre. */
+.markdown-source-view.mod-cm6 .cm-line.HyperMD-header-2.replier-tout-sans-sous-titre {
+  border-bottom: 1px solid var(--replier-tout-couleur-trait);
+  padding-bottom: 0.35em;
 }
 
 /* Le premier titre reste proche du titre de la note. */
