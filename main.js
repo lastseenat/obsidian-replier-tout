@@ -12,6 +12,21 @@ function positionIsFolded(state, position) {
   return folded;
 }
 
+function headingIsFolded(state, heading) {
+  const range = foldable(state, heading.from, heading.to);
+  if (!range) {
+    return false;
+  }
+
+  let folded = false;
+  foldedRanges(state).between(range.from, range.to, (from, to) => {
+    if (from <= range.from && to >= range.to) {
+      folded = true;
+    }
+  });
+  return folded;
+}
+
 function buildSectionSeparators(view) {
   const levelTwoHeadings = [];
   const lowerHeadings = [];
@@ -31,6 +46,15 @@ function buildSectionSeparators(view) {
   }
 
   const decorations = [];
+  lowerHeadings.forEach((heading) => {
+    if (!headingIsFolded(view.state, heading)) {
+      decorations.push(
+        Decoration.line({ attributes: { class: "replier-tout-titre-deplie" } })
+          .range(heading.from),
+      );
+    }
+  });
+
   levelTwoHeadings.forEach((heading, index) => {
     const nextHeading = levelTwoHeadings[index + 1];
     const sectionEnd = nextHeading ? nextHeading.from : view.state.doc.length + 1;
