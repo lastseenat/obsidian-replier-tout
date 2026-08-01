@@ -90,6 +90,9 @@ function buildSectionSeparators(view) {
     if (showSeparator) {
       classes.push("replier-tout-separateur");
     }
+    if (hasLowerHeading && !sectionIsFolded) {
+      classes.push("replier-tout-partie-deplie");
+    }
     if ((!hasLowerHeading && !isSourcesHeading) || (isLastNumberedHeading && sectionIsFolded)) {
       classes.push("replier-tout-sans-sous-titre");
     }

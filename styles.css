@@ -55,6 +55,12 @@
   padding-top: 0.35em;
 }
 
+/* Trait sous une grande partie uniquement lorsqu'elle est dépliée. */
+.markdown-source-view.mod-cm6 .cm-line.HyperMD-header-2.replier-tout-partie-deplie {
+  border-bottom: 1px solid var(--replier-tout-couleur-trait);
+  padding-bottom: 0.25em;
+}
+
 /* Même espace après le dernier sous-titre qu'après le grand titre. */
 .markdown-source-view.mod-cm6 .cm-line.replier-tout-dernier-sous-titre {
   padding-bottom: var(--replier-tout-espacement-partie);
