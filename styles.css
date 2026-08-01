@@ -140,13 +140,33 @@ body:not(.replier-tout-tableaux-non-centres)
 
 .markdown-reading-view .replier-tout-titre-lecture:not(.is-collapsed)
   > :is(h2, h3, h4, h5, h6) {
-  border-bottom: 1px solid var(--replier-tout-couleur-trait);
+  box-sizing: border-box;
+  display: block;
+  position: relative;
   padding-bottom: 0.25em;
   margin-bottom: var(--replier-tout-espace-apres-trait);
 }
 
+.markdown-reading-view .replier-tout-titre-lecture:not(.is-collapsed)
+  > :is(h2, h3, h4, h5, h6)::after {
+  background: var(--replier-tout-couleur-trait);
+  bottom: 0;
+  content: "";
+  height: 1px;
+  left: 0;
+  position: absolute;
+  right: 0;
+}
+
+.markdown-reading-view .replier-tout-sources-lecture,
+.markdown-reading-view .replier-tout-sources-lecture.is-collapsed,
 .markdown-reading-view .replier-tout-sources-lecture > h2 {
-  border-bottom: 0;
+  border-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.markdown-reading-view .replier-tout-sources-lecture > h2::after {
+  display: none;
 }
 
 .markdown-reading-view .replier-tout-derniere-partie-lecture.is-collapsed > h2 {

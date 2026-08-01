@@ -28,6 +28,16 @@ function decorateReadingSections(element) {
     const headings = children.filter((child) => readingHeadingLevel(child) !== null);
     const levelTwoHeadings = headings.filter((heading) => readingHeadingLevel(heading) === 2);
 
+    children.forEach((child) => child.classList.remove(
+      "replier-tout-titre-lecture",
+      "replier-tout-sources-lecture",
+      "replier-tout-premier-sous-titre-lecture",
+      "replier-tout-fin-section-lecture",
+      "replier-tout-fin-section-repliee-lecture",
+      "replier-tout-premiere-partie-lecture",
+      "replier-tout-derniere-partie-lecture",
+    ));
+
     headings.forEach((heading) => {
       const level = readingHeadingLevel(heading);
       const headingIndex = children.indexOf(heading);
@@ -82,6 +92,94 @@ function decorateReadingSections(element) {
         .classList.add("replier-tout-derniere-partie-lecture");
     }
   });
+}
+
+function readingHeadingIndicatorLevel(indicator) {
+  const heading = indicator.parentElement;
+  if (!heading || !/^H[1-6]$/.test(heading.tagName)) {
+    return null;
+  }
+  return Number(heading.tagName.slice(1));
+}
+
+function setReadingHeadingFoldsFallback(markdownView, fold) {
+  const root = markdownView.previewMode?.containerEl ?? markdownView.containerEl;
+  if (!root) {
+    return false;
+  }
+
+  let passes = 0;
+  const applyVisibleHeadings = () => {
+    if (passes >= 128) {
+      return;
+    }
+    passes += 1;
+
+    const headings = [...root.querySelectorAll(".heading-collapse-indicator")]
+      .map((indicator) => {
+        const level = readingHeadingIndicatorLevel(indicator);
+        const wrapper = indicator.closest("[class*='el-h']");
+        return { indicator, level, wrapper };
+      })
+      .filter(({ level, wrapper }) => level !== null && wrapper)
+      .sort((first, second) => (fold ? second.level - first.level : first.level - second.level));
+
+    let changed = false;
+    headings.forEach(({ indicator, wrapper }) => {
+      if (!indicator.isConnected || !wrapper.isConnected) {
+        return;
+      }
+      if (wrapper.classList.contains("is-collapsed") !== fold) {
+        indicator.click();
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      window.setTimeout(applyVisibleHeadings, 0);
+    }
+  };
+
+  applyVisibleHeadings();
+  return true;
+}
+
+function setReadingHeadingFolds(markdownView, fold) {
+  const renderer = markdownView.previewMode?.renderer;
+  if (!renderer) {
+    return false;
+  }
+
+  if (!fold && typeof renderer.unfoldAllHeadings === "function") {
+    renderer.unfoldAllHeadings();
+    return true;
+  }
+
+  if (!fold
+    || !Array.isArray(renderer.sections)
+    || typeof renderer.updateShownSections !== "function"
+    || typeof renderer.updateVirtualDisplay !== "function") {
+    return false;
+  }
+
+  let hasHeading = false;
+  renderer.sections.forEach((section) => {
+    if (section.level < 1 || section.level > 6 || typeof section.setCollapsed !== "function") {
+      return;
+    }
+
+    section.setCollapsed(true);
+    hasHeading = true;
+  });
+
+  if (!hasHeading) {
+    return false;
+  }
+
+  renderer.updateShownSections();
+  renderer.updateVirtualDisplay();
+  renderer.owner?.onFoldChange?.();
+  return true;
 }
 
 function positionIsFolded(state, position) {
@@ -288,6 +386,10 @@ module.exports = class ReplierToutPlugin extends Plugin {
     document.body.removeClass("replier-tout-tableaux-centres");
     this.applyTableAlignment();
     this.viewsWithActions = new WeakSet();
+    this.actionButtons = new Set();
+    this.observedReadingSections = new WeakSet();
+    this.readingObservers = new Set();
+    this.removeExistingNoteActions();
     this.registerEditorExtension(sectionSeparatorExtension);
     this.registerMarkdownPostProcessor((element) => {
       decorateReadingSections(element);
@@ -303,6 +405,9 @@ module.exports = class ReplierToutPlugin extends Plugin {
   }
 
   onunload() {
+    this.removeNoteActions();
+    this.readingObservers.forEach((observer) => observer.disconnect());
+    this.readingObservers.clear();
     document.body.removeClass("replier-tout-tableaux-centres");
     document.body.removeClass("replier-tout-tableaux-non-centres");
   }
@@ -322,7 +427,47 @@ module.exports = class ReplierToutPlugin extends Plugin {
 
   decorateReadingViews() {
     document.querySelectorAll(".markdown-reading-view .markdown-preview-section")
-      .forEach((section) => decorateReadingSections(section));
+      .forEach((section) => {
+        decorateReadingSections(section);
+        this.watchReadingSection(section);
+      });
+  }
+
+  watchReadingSection(section) {
+    if (this.observedReadingSections.has(section)) {
+      return;
+    }
+
+    this.observedReadingSections.add(section);
+    const observer = new MutationObserver((mutations) => {
+      if (mutations.some((mutation) => mutation.type === "childList")) {
+        decorateReadingSections(section);
+      }
+    });
+    observer.observe(section, { childList: true, subtree: true });
+    this.readingObservers.add(observer);
+  }
+
+  removeExistingNoteActions() {
+    this.app.workspace.getLeavesOfType("markdown").forEach((leaf) => {
+      const view = leaf.view;
+      if (!(view instanceof MarkdownView)) {
+        return;
+      }
+
+      view.actionsEl?.querySelectorAll(".view-action").forEach((button) => {
+        const label = button.getAttribute("aria-label");
+        if (label === "Replier les titres" || label === "D\u00e9plier tout") {
+          button.remove();
+        }
+      });
+    });
+  }
+
+  removeNoteActions() {
+    this.actionButtons.forEach((button) => button.remove());
+    this.actionButtons.clear();
+    this.removeExistingNoteActions();
   }
 
   addNoteActions() {
@@ -332,13 +477,35 @@ module.exports = class ReplierToutPlugin extends Plugin {
         return;
       }
 
-      view.addAction("chevrons-up", "Replier les titres", () => this.setHeadingFolds(view, true));
-      view.addAction("chevrons-down", "Déplier tout", () => this.unfoldAll());
+      const foldButton = view.addAction(
+        "chevrons-up",
+        "Replier les titres",
+        () => this.setHeadingFolds(view, true),
+      );
+      foldButton.dataset.replierToutAction = "fold";
+      this.actionButtons.add(foldButton);
+
+      const unfoldButton = view.addAction(
+        "chevrons-down",
+        "D\u00e9plier tout",
+        () => this.setHeadingFolds(view, false),
+      );
+      unfoldButton.dataset.replierToutAction = "unfold";
+      this.actionButtons.add(unfoldButton);
       this.viewsWithActions.add(view);
     });
   }
 
   setHeadingFolds(markdownView, fold) {
+    const readingView = markdownView.containerEl.querySelector(".markdown-reading-view");
+    if (readingView && readingView.getClientRects().length > 0) {
+      if (!setReadingHeadingFolds(markdownView, fold)) {
+        setReadingHeadingFoldsFallback(markdownView, fold);
+      }
+      window.setTimeout(() => this.decorateReadingViews(), 0);
+      return;
+    }
+
     const editorView = markdownView.editor?.cm;
     if (!editorView) {
       new Notice("Passe en mode édition pour replier ou déplier les titres");
@@ -370,9 +537,6 @@ module.exports = class ReplierToutPlugin extends Plugin {
     }
   }
 
-  unfoldAll() {
-    this.app.commands.executeCommandById("editor:unfold-all");
-  }
 };
 
 class ReplierToutSettingTab extends PluginSettingTab {
