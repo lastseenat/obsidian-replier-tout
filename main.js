@@ -27,6 +27,19 @@ function headingIsFolded(state, heading) {
   return folded;
 }
 
+function headingLevel(heading) {
+  return /^(#{2,6})\s/.exec(heading.text)[1].length;
+}
+
+function lastContentLineBefore(state, position) {
+  let line = state.doc.lineAt(Math.max(0, Math.min(position - 1, state.doc.length)));
+
+  while (line.number > 1 && line.text.trim() === "") {
+    line = state.doc.line(line.number - 1);
+  }
+  return line;
+}
+
 function buildSectionSeparators(view) {
   const levelTwoHeadings = [];
   const lowerHeadings = [];
@@ -45,6 +58,8 @@ function buildSectionSeparators(view) {
     }
   }
 
+  const allHeadings = [...levelTwoHeadings, ...lowerHeadings]
+    .sort((first, second) => first.from - second.from);
   const decorations = [];
   lowerHeadings.forEach((heading) => {
     if (!headingIsFolded(view.state, heading)) {
@@ -52,6 +67,25 @@ function buildSectionSeparators(view) {
         Decoration.line({ attributes: { class: "replier-tout-titre-deplie" } })
           .range(heading.from),
       );
+
+      const level = headingLevel(heading);
+      const nextBoundaryHeading = allHeadings.find(
+        (candidate) => candidate.from > heading.from && headingLevel(candidate) <= level,
+      );
+
+      if (!nextBoundaryHeading || headingLevel(nextBoundaryHeading) > 2) {
+        const sectionEnd = nextBoundaryHeading
+          ? nextBoundaryHeading.from
+          : view.state.doc.length + 1;
+        const lastContentLine = lastContentLineBefore(view.state, sectionEnd);
+
+        if (lastContentLine.from !== heading.from) {
+          decorations.push(
+            Decoration.line({ attributes: { class: "replier-tout-fin-titre-deplie" } })
+              .range(lastContentLine.from),
+          );
+        }
+      }
     }
   });
 

@@ -43,6 +43,12 @@
   padding-bottom: calc(0.25em + var(--replier-tout-espace-apres-trait));
 }
 
+/* Trait de fermeture après le contenu d'un sous-titre déplié. */
+.markdown-source-view.mod-cm6 .cm-line.replier-tout-fin-titre-deplie {
+  border-bottom: 1px solid var(--replier-tout-couleur-trait);
+  padding-bottom: 0.35em;
+}
+
 /* Masque uniquement les points indiquant le contenu replié d'un titre. */
 .markdown-source-view.mod-cm6 .cm-line[class*="HyperMD-header"] .cm-foldPlaceholder {
   display: none;
