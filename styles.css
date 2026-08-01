@@ -44,7 +44,7 @@
 
 /* Même espace après le dernier sous-titre qu'après le grand titre. */
 .markdown-source-view.mod-cm6 .cm-line.replier-tout-dernier-sous-titre {
-  margin-bottom: var(--replier-tout-espacement-partie);
+  padding-bottom: var(--replier-tout-espacement-partie);
 }
 
 /* Trait de fermeture pour une grande partie sans sous-titre. */
