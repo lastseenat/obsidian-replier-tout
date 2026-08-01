@@ -1,0 +1,9 @@
+{
+  "id": "replier-tout",
+  "name": "Replier tout",
+  "version": "1.0.0",
+  "minAppVersion": "1.0.0",
+  "description": "Ajoute un bouton pour replier tous les titres et les listes de la note active.",
+  "author": "LiNkE",
+  "isDesktopOnly": false
+}
