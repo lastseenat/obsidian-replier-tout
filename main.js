@@ -1,29 +1,50 @@
-const { Notice, Plugin } = require("obsidian");
-
-const FOLD_ALL_COMMAND = "editor:fold-all";
+const { MarkdownView, Notice, Plugin } = require("obsidian");
+const { foldEffect, foldable, unfoldEffect } = require("@codemirror/language");
 
 module.exports = class ReplierToutPlugin extends Plugin {
   onload() {
-    this.addRibbonIcon(
-      "chevrons-up",
-      "Replier tous les titres et les listes",
-      () => this.foldAll(),
-    );
+    this.viewsWithActions = new WeakSet();
+    this.addNoteActions();
+    this.registerEvent(this.app.workspace.on("layout-change", () => this.addNoteActions()));
+  }
 
-    this.addCommand({
-      id: "replier-tout",
-      name: "Replier tous les titres et les listes",
-      callback: () => this.foldAll(),
+  addNoteActions() {
+    this.app.workspace.getLeavesOfType("markdown").forEach((leaf) => {
+      const view = leaf.view;
+      if (!(view instanceof MarkdownView) || this.viewsWithActions.has(view)) {
+        return;
+      }
+
+      view.addAction("chevrons-up", "Replier les titres", () => this.setHeadingFolds(view, true));
+      view.addAction("chevrons-down", "Déplier les titres", () => this.setHeadingFolds(view, false));
+      this.viewsWithActions.add(view);
     });
   }
 
-  foldAll() {
-    const command = this.app.commands.commands[FOLD_ALL_COMMAND];
-    if (!command) {
-      new Notice("Ouvre une note Markdown avant de replier son contenu");
+  setHeadingFolds(markdownView, fold) {
+    const editorView = markdownView.editor?.cm;
+    if (!editorView) {
+      new Notice("Passe en mode édition pour replier ou déplier les titres");
       return;
     }
 
-    this.app.commands.executeCommandById(FOLD_ALL_COMMAND);
+    const effects = [];
+    const { state } = editorView;
+
+    for (let lineNumber = 1; lineNumber <= state.doc.lines; lineNumber += 1) {
+      const line = state.doc.line(lineNumber);
+      if (!/^#{1,6}\s/.test(line.text)) {
+        continue;
+      }
+
+      const range = foldable(state, line.from, line.to);
+      if (range) {
+        effects.push((fold ? foldEffect : unfoldEffect).of(range));
+      }
+    }
+
+    if (effects.length > 0) {
+      editorView.dispatch({ effects });
+    }
   }
 };

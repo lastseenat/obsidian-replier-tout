@@ -1,6 +1,11 @@
-# Replier tout
+# Replier et déplier les titres
 
-Ajoute dans la barre latérale d’Obsidian un bouton qui replie tous les titres et les listes de la note Markdown active.
+Ajoute deux boutons dans l’en-tête de chaque note Markdown :
+
+- Replier les titres
+- Déplier les titres
+
+Les listes et sous-puces ne sont pas modifiées.
 
 ## Installation avec BRAT
 
