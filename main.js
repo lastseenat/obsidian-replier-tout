@@ -43,6 +43,7 @@ function buildSectionSeparators(view) {
       : false;
     const isLastNumberedHeading = /^##\s+\d/.test(heading.text)
       && (!nextHeading || !/^##\s+\d/.test(nextHeading.text));
+    const isSourcesHeading = /^##\s+(?:🌐\s*)?Sources\s*$/i.test(heading.text);
     let showSeparator = index === 0;
 
     if (index > 0) {
@@ -63,7 +64,7 @@ function buildSectionSeparators(view) {
     if (showSeparator) {
       classes.push("replier-tout-separateur");
     }
-    if (!hasLowerHeading || (isLastNumberedHeading && sectionIsFolded)) {
+    if ((!hasLowerHeading && !isSourcesHeading) || (isLastNumberedHeading && sectionIsFolded)) {
       classes.push("replier-tout-sans-sous-titre");
     }
 
