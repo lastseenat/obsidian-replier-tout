@@ -39,7 +39,12 @@ module.exports = class ReplierToutPlugin extends Plugin {
 
       const range = foldable(state, line.from, line.to);
       if (range) {
-        effects.push((fold ? foldEffect : unfoldEffect).of(range));
+        const endsWithLineBreak = state.doc.sliceString(range.to - 1, range.to) === "\n";
+        const visibleLineBreakRange = endsWithLineBreak
+          ? { from: range.from, to: range.to - 1 }
+          : range;
+
+        effects.push((fold ? foldEffect : unfoldEffect).of(visibleLineBreakRange));
       }
     }
 
