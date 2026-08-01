@@ -1,13 +1,15 @@
-/* Trait attaché aux titres de niveau 2 : reste visible pendant le repli. */
-.markdown-source-view.mod-cm6 .cm-line.HyperMD-header-2,
-.markdown-preview-view h2 {
+/* Espacement des grandes parties. */
+.markdown-source-view.mod-cm6 .cm-line.HyperMD-header-2 {
+  margin-top: 1.25em;
+}
+
+/* Trait conditionnel : première partie ou partie précédente dépliée. */
+.markdown-source-view.mod-cm6 .cm-line.HyperMD-header-2.replier-tout-separateur {
   border-top: 1px solid var(--background-modifier-border);
-  margin-top: 0.75em;
-  padding-top: 0;
+  padding-top: 0.35em;
 }
 
 /* Le premier titre reste proche du titre de la note. */
-.markdown-source-view.mod-cm6 .cm-content > .cm-line.HyperMD-header-2:first-child,
-.markdown-preview-view h2:first-of-type {
+.markdown-source-view.mod-cm6 .cm-content > .cm-line.HyperMD-header-2:first-child {
   margin-top: 0;
 }

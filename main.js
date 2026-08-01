@@ -1,9 +1,82 @@
 const { MarkdownView, Notice, Plugin } = require("obsidian");
-const { foldEffect, foldable, unfoldEffect } = require("@codemirror/language");
+const { foldEffect, foldable, foldedRanges, unfoldEffect } = require("@codemirror/language");
+const { Decoration, ViewPlugin } = require("@codemirror/view");
+
+function positionIsFolded(state, position) {
+  let folded = false;
+  foldedRanges(state).between(position, Math.min(position + 1, state.doc.length), (from, to) => {
+    if (from <= position && position <= to) {
+      folded = true;
+    }
+  });
+  return folded;
+}
+
+function buildSectionSeparators(view) {
+  const levelTwoHeadings = [];
+  const lowerHeadings = [];
+
+  for (let lineNumber = 1; lineNumber <= view.state.doc.lines; lineNumber += 1) {
+    const line = view.state.doc.line(lineNumber);
+    const match = /^(#{2,6})\s/.exec(line.text);
+    if (!match) {
+      continue;
+    }
+
+    if (match[1].length === 2) {
+      levelTwoHeadings.push(line);
+    } else {
+      lowerHeadings.push(line);
+    }
+  }
+
+  const decorations = [];
+  levelTwoHeadings.forEach((heading, index) => {
+    let showSeparator = index === 0;
+
+    if (index > 0) {
+      const previousHeading = levelTwoHeadings[index - 1];
+      const firstLowerHeading = lowerHeadings.find(
+        (line) => line.from > previousHeading.to && line.from < heading.from,
+      );
+
+      if (firstLowerHeading) {
+        showSeparator = !positionIsFolded(view.state, firstLowerHeading.from);
+      } else {
+        const sectionPosition = Math.min(previousHeading.to + 1, heading.from - 1);
+        showSeparator = !positionIsFolded(view.state, sectionPosition);
+      }
+    }
+
+    if (showSeparator) {
+      decorations.push(
+        Decoration.line({ attributes: { class: "replier-tout-separateur" } }).range(heading.from),
+      );
+    }
+  });
+
+  return Decoration.set(decorations, true);
+}
+
+const sectionSeparatorExtension = ViewPlugin.fromClass(
+  class {
+    constructor(view) {
+      this.decorations = buildSectionSeparators(view);
+    }
+
+    update(update) {
+      this.decorations = buildSectionSeparators(update.view);
+    }
+  },
+  {
+    decorations: (plugin) => plugin.decorations,
+  },
+);
 
 module.exports = class ReplierToutPlugin extends Plugin {
   onload() {
     this.viewsWithActions = new WeakSet();
+    this.registerEditorExtension(sectionSeparatorExtension);
     this.addNoteActions();
     this.registerEvent(this.app.workspace.on("layout-change", () => this.addNoteActions()));
   }
