@@ -3,6 +3,8 @@
   --replier-tout-couleur-trait: var(--background-modifier-border);
   --replier-tout-espacement-partie: 1.25em;
   --replier-tout-espace-apres-trait: 0.75em;
+  --replier-tout-espace-avant-trait: 0.75em;
+  --replier-tout-espace-tableau: 1em;
 }
 
 .theme-dark .markdown-source-view.mod-cm6 {
@@ -46,7 +48,15 @@
 /* Trait de fermeture après le contenu d'un sous-titre déplié. */
 .markdown-source-view.mod-cm6 .cm-line.replier-tout-fin-titre-deplie {
   border-bottom: 1px solid var(--replier-tout-couleur-trait);
-  padding-bottom: 0.35em;
+  padding-bottom: var(--replier-tout-espace-avant-trait);
+}
+
+/* Tableaux centrés avec le même espace avant et après. */
+.replier-tout-tableaux-centres .markdown-reading-view table,
+.replier-tout-tableaux-centres .markdown-preview-view table,
+.replier-tout-tableaux-centres .markdown-source-view.mod-cm6 .cm-table-widget {
+  margin-block: var(--replier-tout-espace-tableau);
+  margin-inline: auto;
 }
 
 /* Masque uniquement les points indiquant le contenu replié d'un titre. */

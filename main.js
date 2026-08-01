@@ -1,6 +1,10 @@
-const { MarkdownView, Notice, Plugin } = require("obsidian");
+const { MarkdownView, Notice, Plugin, PluginSettingTab, Setting } = require("obsidian");
 const { foldEffect, foldable, foldedRanges, unfoldEffect } = require("@codemirror/language");
 const { Decoration, ViewPlugin } = require("@codemirror/view");
+
+const DEFAULT_SETTINGS = {
+  centerTables: true,
+};
 
 function positionIsFolded(state, position) {
   let folded = false;
@@ -164,11 +168,31 @@ const sectionSeparatorExtension = ViewPlugin.fromClass(
 );
 
 module.exports = class ReplierToutPlugin extends Plugin {
-  onload() {
+  async onload() {
+    await this.loadSettings();
+    this.applyTableAlignment();
     this.viewsWithActions = new WeakSet();
     this.registerEditorExtension(sectionSeparatorExtension);
     this.addNoteActions();
+    this.addSettingTab(new ReplierToutSettingTab(this.app, this));
     this.registerEvent(this.app.workspace.on("layout-change", () => this.addNoteActions()));
+  }
+
+  onunload() {
+    document.body.removeClass("replier-tout-tableaux-centres");
+  }
+
+  async loadSettings() {
+    this.settings = { ...DEFAULT_SETTINGS, ...(await this.loadData()) };
+  }
+
+  async saveSettings() {
+    await this.saveData(this.settings);
+    this.applyTableAlignment();
+  }
+
+  applyTableAlignment() {
+    document.body.toggleClass("replier-tout-tableaux-centres", this.settings.centerTables);
   }
 
   addNoteActions() {
@@ -220,3 +244,25 @@ module.exports = class ReplierToutPlugin extends Plugin {
     this.app.commands.executeCommandById("editor:unfold-all");
   }
 };
+
+class ReplierToutSettingTab extends PluginSettingTab {
+  constructor(app, plugin) {
+    super(app, plugin);
+    this.plugin = plugin;
+  }
+
+  display() {
+    const { containerEl } = this;
+    containerEl.empty();
+
+    new Setting(containerEl)
+      .setName("Centrer les tableaux")
+      .setDesc("Centre les tableaux et conserve le même espace avant et après")
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.centerTables)
+        .onChange(async (value) => {
+          this.plugin.settings.centerTables = value;
+          await this.plugin.saveSettings();
+        }));
+  }
+}
