@@ -30,6 +30,17 @@
   padding-left: 5em;
 }
 
+/* Trait placé sous chaque titre de niveau inférieur. */
+.markdown-source-view.mod-cm6 .cm-line:is(
+  .HyperMD-header-3,
+  .HyperMD-header-4,
+  .HyperMD-header-5,
+  .HyperMD-header-6
+) {
+  border-bottom: 1px solid var(--replier-tout-couleur-trait);
+  padding-bottom: 0.25em;
+}
+
 /* Masque uniquement les points indiquant le contenu replié d'un titre. */
 .markdown-source-view.mod-cm6 .cm-line[class*="HyperMD-header"] .cm-foldPlaceholder {
   display: none;
