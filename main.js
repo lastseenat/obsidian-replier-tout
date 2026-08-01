@@ -34,9 +34,11 @@ function buildSectionSeparators(view) {
   levelTwoHeadings.forEach((heading, index) => {
     const nextHeading = levelTwoHeadings[index + 1];
     const sectionEnd = nextHeading ? nextHeading.from : view.state.doc.length + 1;
-    const firstLowerHeading = lowerHeadings.find(
+    const sectionLowerHeadings = lowerHeadings.filter(
       (line) => line.from > heading.to && line.from < sectionEnd,
     );
+    const firstLowerHeading = sectionLowerHeadings[0];
+    const lastLowerHeading = sectionLowerHeadings[sectionLowerHeadings.length - 1];
     const hasLowerHeading = Boolean(firstLowerHeading);
     const sectionIsFolded = firstLowerHeading
       ? positionIsFolded(view.state, firstLowerHeading.from)
@@ -71,6 +73,13 @@ function buildSectionSeparators(view) {
     if (classes.length > 0) {
       decorations.push(
         Decoration.line({ attributes: { class: classes.join(" ") } }).range(heading.from),
+      );
+    }
+
+    if (nextHeading && lastLowerHeading && !sectionIsFolded) {
+      decorations.push(
+        Decoration.line({ attributes: { class: "replier-tout-dernier-sous-titre" } })
+          .range(lastLowerHeading.from),
       );
     }
   });
