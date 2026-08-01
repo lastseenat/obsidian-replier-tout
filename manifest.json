@@ -1,9 +1,9 @@
 {
   "id": "replier-tout",
   "name": "Replier tout",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "minAppVersion": "1.0.0",
-  "description": "Ajoute des boutons pour replier ou déplier les titres de la note active.",
+  "description": "Ajoute des boutons pour replier les titres ou déplier le contenu de la note active.",
   "author": "LiNkE",
   "isDesktopOnly": false
 }

@@ -16,7 +16,7 @@ module.exports = class ReplierToutPlugin extends Plugin {
       }
 
       view.addAction("chevrons-up", "Replier les titres", () => this.setHeadingFolds(view, true));
-      view.addAction("chevrons-down", "Déplier les titres", () => this.setHeadingFolds(view, false));
+      view.addAction("chevrons-down", "Déplier tout", () => this.unfoldAll());
       this.viewsWithActions.add(view);
     });
   }
@@ -46,5 +46,9 @@ module.exports = class ReplierToutPlugin extends Plugin {
     if (effects.length > 0) {
       editorView.dispatch({ effects });
     }
+  }
+
+  unfoldAll() {
+    this.app.commands.executeCommandById("editor:unfold-all");
   }
 };

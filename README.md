@@ -3,9 +3,9 @@
 Ajoute deux boutons dans l’en-tête de chaque note Markdown :
 
 - Replier les titres
-- Déplier les titres
+- Déplier tout
 
-Les listes et sous-puces ne sont pas modifiées.
+Le bouton **Replier les titres** laisse les listes et sous-puces ouvertes. Le bouton **Déplier tout** ouvre aussi les sous-puces.
 
 ## Installation avec BRAT
 
