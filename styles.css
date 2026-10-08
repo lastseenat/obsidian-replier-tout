@@ -6,7 +6,7 @@
   --replier-tout-espace-apres-trait: 0.75em;
   --replier-tout-espace-avant-trait: 0.75em;
   --replier-tout-espace-tableau: 0.25em;
-  --replier-tout-espace-tableau-edition: -0.75em;
+  --replier-tout-espace-tableau-edition: 0;
 }
 
 .theme-dark .markdown-source-view.mod-cm6,
@@ -14,9 +14,10 @@
   --replier-tout-couleur-trait: var(--text-faint);
 }
 
+/* Padding plutôt que margin : CodeMirror ne gère pas les marges des lignes (clics décalés). */
 .markdown-source-view.mod-cm6 .cm-line.HyperMD-header-2 {
-  margin-top: var(--replier-tout-espacement-partie);
-  margin-bottom: var(--replier-tout-espacement-partie);
+  padding-top: var(--replier-tout-espacement-partie);
+  padding-bottom: var(--replier-tout-espacement-partie);
 }
 
 /* Retrait progressif des sous-titres, sans déplacer leur contenu. */
@@ -106,14 +107,19 @@ body:not(.replier-tout-tableaux-non-centres)
 /* Trait conditionnel : première partie ou partie précédente dépliée. */
 .markdown-source-view.mod-cm6 .cm-line.HyperMD-header-2.replier-tout-separateur {
   border-top: 1px solid var(--replier-tout-couleur-trait);
-  margin-top: 0;
   padding-top: 0.35em;
 }
 
 /* Trait sous une grande partie uniquement lorsqu'elle est dépliée. */
 .markdown-source-view.mod-cm6 .cm-line.HyperMD-header-2.replier-tout-partie-deplie {
-  border-bottom: 1px solid var(--replier-tout-couleur-trait);
-  padding-bottom: 0.25em;
+  background-image: linear-gradient(
+    var(--replier-tout-couleur-trait),
+    var(--replier-tout-couleur-trait)
+  );
+  background-position: left bottom var(--replier-tout-espacement-partie);
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  padding-bottom: calc(0.25em + var(--replier-tout-espacement-partie));
 }
 
 /* Même espace entre la fin d'une grande partie et le trait suivant. */
@@ -123,13 +129,19 @@ body:not(.replier-tout-tableaux-non-centres)
 
 /* Trait de fermeture pour une grande partie sans sous-titre. */
 .markdown-source-view.mod-cm6 .cm-line.HyperMD-header-2.replier-tout-sans-sous-titre {
-  border-bottom: 1px solid var(--replier-tout-couleur-trait);
-  padding-bottom: 0.35em;
+  background-image: linear-gradient(
+    var(--replier-tout-couleur-trait),
+    var(--replier-tout-couleur-trait)
+  );
+  background-position: left bottom var(--replier-tout-espacement-partie);
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  padding-bottom: calc(0.35em + var(--replier-tout-espacement-partie));
 }
 
 /* Le premier titre reste proche du titre de la note. */
-.markdown-source-view.mod-cm6 .cm-content > .cm-line.HyperMD-header-2:first-child {
-  margin-top: 0;
+.markdown-source-view.mod-cm6 .cm-content > .cm-line.HyperMD-header-2:first-child:not(.replier-tout-separateur) {
+  padding-top: 0;
 }
 
 /* Même hiérarchie et mêmes séparateurs en mode lecture. */

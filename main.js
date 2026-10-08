@@ -56,7 +56,9 @@ function decorateReadingSections(element) {
       const headingText = heading.querySelector(`h${level}`)?.textContent?.trim() ?? "";
       const isSourcesHeading = level === 2 && /(?:^|\s)Sources\s*$/i.test(headingText);
 
-      heading.classList.add("replier-tout-titre-lecture");
+      if (sectionElements.length > 0 || !nextBoundary) {
+        heading.classList.add("replier-tout-titre-lecture");
+      }
       if (isSourcesHeading) {
         heading.classList.add("replier-tout-sources-lecture");
       }
@@ -87,8 +89,12 @@ function decorateReadingSections(element) {
     const numberedHeadings = levelTwoHeadings.filter((heading) => /^\d/.test(
       heading.querySelector("h2")?.textContent?.trim() ?? "",
     ));
-    if (numberedHeadings.length > 0) {
-      numberedHeadings[numberedHeadings.length - 1]
+    const nonSourcesHeadings = levelTwoHeadings.filter((heading) => !/(?:^|\s)Sources\s*$/i.test(
+      heading.querySelector("h2")?.textContent?.trim() ?? "",
+    ));
+    const lastPartHeadings = numberedHeadings.length > 0 ? numberedHeadings : nonSourcesHeadings;
+    if (lastPartHeadings.length > 0) {
+      lastPartHeadings[lastPartHeadings.length - 1]
         .classList.add("replier-tout-derniere-partie-lecture");
     }
   });
@@ -320,6 +326,9 @@ function buildSectionSeparators(view) {
     const isLastNumberedHeading = /^##\s+\d/.test(heading.text)
       && (!nextHeading || !/^##\s+\d/.test(nextHeading.text));
     const isSourcesHeading = /^##\s+(?:🌐\s*)?Sources\s*$/i.test(heading.text);
+    const sectionIsEmpty = !view.state.doc
+      .sliceString(heading.to, nextHeading ? nextHeading.from : view.state.doc.length)
+      .trim();
     let showSeparator = index === 0;
 
     if (index > 0) {
@@ -328,7 +337,13 @@ function buildSectionSeparators(view) {
         (line) => line.from > previousHeading.to && line.from < heading.from,
       );
 
-      if (previousFirstLowerHeading) {
+      const previousSectionIsEmpty = !view.state.doc
+        .sliceString(previousHeading.to, heading.from)
+        .trim();
+
+      if (previousSectionIsEmpty) {
+        showSeparator = false;
+      } else if (previousFirstLowerHeading) {
         showSeparator = !positionIsFolded(view.state, previousFirstLowerHeading.from);
       } else {
         const sectionPosition = Math.min(previousHeading.to + 1, heading.from - 1);
@@ -343,7 +358,7 @@ function buildSectionSeparators(view) {
     if (hasLowerHeading && !sectionIsFolded) {
       classes.push("replier-tout-partie-deplie");
     }
-    if ((!hasLowerHeading && !isSourcesHeading) || (isLastNumberedHeading && sectionIsFolded)) {
+    if ((!hasLowerHeading && !isSourcesHeading && !(sectionIsEmpty && nextHeading)) || (isLastNumberedHeading && sectionIsFolded)) {
       classes.push("replier-tout-sans-sous-titre");
     }
 
